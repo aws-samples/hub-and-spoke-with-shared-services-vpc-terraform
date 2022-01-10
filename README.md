@@ -55,11 +55,11 @@ The resources deployed and the architectural pattern they follow is purely for d
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region to create the environment. | `string` | `"eu-west-1"` | no |
-| <a name="input_forwarding_rules"></a> [forwarding\_rules](#input\_forwarding\_rules) | Forwarding rules to on-premises DNS servers. | `map(any)` | <pre>{<br>  "example-domain": {<br>    "domain_name": "example.com",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1",<br>      "2.2.2.2"<br>    ]<br>  },<br>  "test-domain": {<br>    "domain_name": "test.es",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1"<br>    ]<br>  }<br>}</pre> | no |
-| <a name="input_on_premises_cidr"></a> [on\_premises\_cidr](#input\_on\_premises\_cidr) | On-premises CIDR block. | `string` | `"192.168.0.0/16"` | no |
-| <a name="input_project_identifier"></a> [project\_identifier](#input\_project\_identifier) | Project Name, used as identifer when creating resources. | `string` | `"hub-spoke-shared_services"` | no |
-| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `map(any)` | <pre>{<br>  "shared_services-vpc": {<br>    "cidr_block": "10.50.0.0/16",<br>    "flowlog_type": "ALL",<br>    "number_azs": 2<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.1.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  }<br>}</pre> | no |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region to create the environment. | `string` | `"eu-west-1"` | yes |
+| <a name="input_forwarding_rules"></a> [forwarding\_rules](#input\_forwarding\_rules) | Forwarding rules to on-premises DNS servers. | `map(any)` | <pre>{<br>  "example-domain": {<br>    "domain_name": "example.com",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1",<br>      "2.2.2.2"<br>    ]<br>  },<br>  "test-domain": {<br>    "domain_name": "test.es",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1"<br>    ]<br>  }<br>}</pre> | yes |
+| <a name="input_on_premises_cidr"></a> [on\_premises\_cidr](#input\_on\_premises\_cidr) | On-premises CIDR block. | `string` | `"192.168.0.0/16"` | yes |
+| <a name="input_project_identifier"></a> [project\_identifier](#input\_project\_identifier) | Project Name, used as identifer when creating resources. | `string` | `"hub-spoke-shared_services"` | yes |
+| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `map(any)` | <pre>{<br>  "shared_services-vpc": {<br>    "cidr_block": "10.50.0.0/16",<br>    "flowlog_type": "ALL",<br>    "number_azs": 2<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.1.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  }<br>}</pre> | yes |
 
 ## Outputs
 
@@ -106,3 +106,15 @@ Both Amazon Route 53 Inbound and Outbound Resolver Endpoints are created. The co
 Remember to clean up after your work is complete. You can do that by doing `terraform destroy`.
 
 Note that this command will delete all the resources previously created by Terraform.
+
+------
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md) for more information.
+
+------
+
+## License
+
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.
