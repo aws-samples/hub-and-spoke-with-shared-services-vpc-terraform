@@ -5,7 +5,7 @@
 
 output "instances_created" {
     value = module.compute
-    description = "Instances created in each VPC."
+    description = "Instances created in each VPC"
 }
 
 output "route53_resolver_endpoints" {
@@ -30,6 +30,7 @@ output "transit_gateway" {
 
 output "vpcs" {
     value = {for key, value in module.vpc: key => value.vpc_id}
+    description = "List of VPCs created"
 }
 
 output "vpc_endpoints" {

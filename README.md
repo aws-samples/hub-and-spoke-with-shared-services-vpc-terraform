@@ -65,13 +65,13 @@ The resources deployed and the architectural pattern they follow is purely for d
 
 | Name | Description |
 |------|-------------|
-| <a name="output_instances_created"></a> [instances\_created](#output\_instances\_created) | Instances created in each VPC. |
+| <a name="output_instances_created"></a> [instances\_created](#output\_instances\_created) | Instances created in each VPC |
 | <a name="output_kms_key"></a> [kms\_key](#output\_kms\_key) | KMS key ARN |
 | <a name="output_private_hosted_zones"></a> [private\_hosted\_zones](#output\_private\_hosted\_zones) | Private Hosted Zones |
 | <a name="output_route53_resolver_endpoints"></a> [route53\_resolver\_endpoints](#output\_route53\_resolver\_endpoints) | Route 53 Resolver Endpoints |
 | <a name="output_transit_gateway"></a> [transit\_gateway](#output\_transit\_gateway) | Transit Gateway ID |
 | <a name="output_vpc_endpoints"></a> [vpc\_endpoints](#output\_vpc\_endpoints) | DNS name (regional) of the VPC endpoints created. |
-| <a name="output_vpcs"></a> [vpcs](#output\_vpcs) | n/a |
+| <a name="output_vpcs"></a> [vpcs](#output\_vpcs) | List of VPCs created |
 <!-- END_TF_DOCS -->
 
 ## Deployment
