@@ -47,6 +47,7 @@ The resources deployed and the architectural pattern they follow is purely for d
 | <a name="module_hybrid_dns"></a> [hybrid\_dns](#module\_hybrid\_dns) | ./modules/hybrid_dns | n/a |
 | <a name="module_iam_kms"></a> [iam\_kms](#module\_iam\_kms) | ./modules/iam_kms | n/a |
 | <a name="module_phz"></a> [phz](#module\_phz) | ./modules/phz | n/a |
+| <a name="module_tgw_vpc_routes"></a> [tgw\_vpc\_routes](#module\_tgw\_vpc\_routes) | ./modules/tgw_vpc_routes | n/a |
 | <a name="module_transit_gateway"></a> [transit\_gateway](#module\_transit\_gateway) | ./modules/transit_gateway | n/a |
 | <a name="module_vpc"></a> [vpc](#module\_vpc) | ./modules/vpc | n/a |
 | <a name="module_vpc_endpoints"></a> [vpc\_endpoints](#module\_vpc\_endpoints) | ./modules/vpc_endpoints | n/a |
@@ -59,7 +60,7 @@ The resources deployed and the architectural pattern they follow is purely for d
 | <a name="input_forwarding_rules"></a> [forwarding\_rules](#input\_forwarding\_rules) | Forwarding rules to on-premises DNS servers. | `map(any)` | <pre>{<br>  "example-domain": {<br>    "domain_name": "example.com",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1",<br>      "2.2.2.2"<br>    ]<br>  },<br>  "test-domain": {<br>    "domain_name": "test.es",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1"<br>    ]<br>  }<br>}</pre> | yes |
 | <a name="input_on_premises_cidr"></a> [on\_premises\_cidr](#input\_on\_premises\_cidr) | On-premises CIDR block. | `string` | `"192.168.0.0/16"` | yes |
 | <a name="input_project_identifier"></a> [project\_identifier](#input\_project\_identifier) | Project Name, used as identifer when creating resources. | `string` | `"hub-spoke-shared_services"` | yes |
-| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `map(any)` | <pre>{<br>  "shared_services-vpc": {<br>    "cidr_block": "10.50.0.0/16",<br>    "flowlog_type": "ALL",<br>    "number_azs": 2<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.1.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1<br>  }<br>}</pre> | yes |
+| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `map(any)` | <pre>{<br>  "shared_services-vpc": {<br>    "cidr_block": "10.50.0.0/16",<br>    "flowlog_type": "ALL",<br>    "number_azs": 2,<br>    "type": "shared-services"<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "type": "spoke"<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.1.0.0/16",<br>    "flowlog_type": "ALL",<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "type": "spoke"<br>  }<br>}</pre> | yes |
 
 ## Outputs
 
@@ -80,7 +81,7 @@ The resources deployed and the architectural pattern they follow is purely for d
 
 - To centralize the SSM access for the instances created in the Spoke VPCs, 3 VPC endpoints are created with "Private DNS" option disabled: ssm, ssmmessages, and ec2messages. 3 Private Hosted Zones are created and associated with all the VPCs created (Spoke VPCs and Shared Services VPC) to allow DNS resolution.
 - The fourth VPC endpoint created is to access Amazon S3. As indicated before, the EC2 instance roles only have *read* permission. 
-- Amazon S3 interface endpoints **do not support** the private DNS feature, so to access S3 you will need to use endpoint-specific DNS names. The S3 VPC endpoint information provided in the outputs is the *Regional DNS name*. One example you can use to test the access to S3 is the following one: `aws s3 --region {aws_region} --endpoint-url https://bucket.{endpoint_dns_name} ls s3://`
+- Amazon S3 interface endpoints **do not support** the private DNS feature. However, thanks to the use of Private Hosted Zones, you can access S3 without having to use the VPC endpoint DNS name all the time. Two resource records are created within the S3 PHZ: one for the apex of the domain, and the second as a wildcard to allow all records within this domain to be resolved to the VPC endpoint. One example you can use to test the access to S3 is the following one: `aws s3 --region {aws_region} ls s3://`
 
 ### Hybrid DNS
 

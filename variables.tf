@@ -23,6 +23,7 @@ variable "vpcs" {
   description = "VPCs to create."
   default = {
     "spoke-vpc-1" = {
+      type          = "spoke"
       cidr_block    = "10.0.0.0/16"
       number_azs    = 1
       instance_type = "t2.micro"
@@ -30,12 +31,14 @@ variable "vpcs" {
       flowlog_type = "ALL"
     }
     "spoke-vpc-2" = {
+      type          = "spoke"
       cidr_block    = "10.1.0.0/16"
       number_azs    = 1
       instance_type = "t2.micro"
       flowlog_type  = "ALL"
     }
     "shared_services-vpc" = {
+      type         = "shared-services"
       cidr_block   = "10.50.0.0/16"
       number_azs   = 2
       flowlog_type = "ALL"

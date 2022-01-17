@@ -28,19 +28,6 @@ resource "aws_ec2_transit_gateway_vpc_attachment" "tgw_attachments" {
   }
 }
 
-# VPC ROUTES TO TGW 
-module "tgw_vpc_route" {
-  for_each                    = var.vpcs
-  source                      = "./tgw_vpc_route"
-  tgw_id                      = aws_ec2_transit_gateway.tgw.id
-  private_subnet_rts          = each.value.private_subnet_rts
-  route53_endpoint_subnet_rts = each.value.r53_endpoints_subnet_rts
-
-  depends_on = [
-    aws_ec2_transit_gateway_vpc_attachment.tgw_attachments
-  ]
-}
-
 # TRANSIT GATEWAY ROUTE TABLES
 # Spoke VPC
 resource "aws_ec2_transit_gateway_route_table" "spoke_vpc_tgw_rt" {

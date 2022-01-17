@@ -4,6 +4,6 @@
 # --- modules/compute/outputs.tf ---
 
 output "instances_created" {
-    value = aws_instance.ec2_instance[*].id
-    description = "List of instances created."
+  value       = aws_instance.ec2_instance[*].id
+  description = "List of instances created."
 }

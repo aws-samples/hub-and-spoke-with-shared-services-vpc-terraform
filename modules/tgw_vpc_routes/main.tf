@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-# --- modules/transit_gateway/tgw_vpc_route/main.tf ---
+# --- modules/tgw_vpc_routes/main.tf ---
 
 resource "aws_route" "private_to_tgw_route" {
   count                  = length(var.private_subnet_rts)

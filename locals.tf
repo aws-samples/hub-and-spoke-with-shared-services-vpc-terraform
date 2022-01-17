@@ -28,9 +28,9 @@ locals {
         egress = {
           any = {
             description = "Any traffic"
-            from = 0
-            to = 0
-            protocol = "-1"
+            from        = 0
+            to          = 0
+            protocol    = "-1"
             cidr_blocks = ["0.0.0.0/0"]
           }
         }
@@ -52,9 +52,9 @@ locals {
         egress = {
           any = {
             description = "Any traffic"
-            from = 0
-            to = 0
-            protocol = "-1"
+            from        = 0
+            to          = 0
+            protocol    = "-1"
             cidr_blocks = ["0.0.0.0/0"]
           }
         }
@@ -83,9 +83,9 @@ locals {
         egress = {
           any = {
             description = "Any traffic"
-            from = 0
-            to = 0
-            protocol = "-1"
+            from        = 0
+            to          = 0
+            protocol    = "-1"
             cidr_blocks = ["0.0.0.0/0"]
           }
         }
@@ -112,9 +112,9 @@ locals {
         egress = {
           any = {
             description = "Any traffic"
-            from = 0
-            to = 0
-            protocol = "-1"
+            from        = 0
+            to          = 0
+            protocol    = "-1"
             cidr_blocks = ["0.0.0.0/0"]
           }
         }
@@ -129,29 +129,28 @@ locals {
       private_dns    = false
       phz_needed     = true
       phz_name       = "ssm.${var.aws_region}.amazonaws.com"
-      phz_alias_name = ""
+      phz_multialias = false
     }
     ssmmessages = {
       name           = "com.amazonaws.${var.aws_region}.ssmmessages"
       type           = "Interface"
       private_dns    = false
-      phz_needed     = true
       phz_name       = "ssmmessages.${var.aws_region}.amazonaws.com"
-      phz_alias_name = ""
+      phz_multialias = false
     }
     ec2messages = {
       name           = "com.amazonaws.${var.aws_region}.ec2messages"
       type           = "Interface"
       private_dns    = false
-      phz_needed     = true
       phz_name       = "ec2messages.${var.aws_region}.amazonaws.com"
-      phz_alias_name = ""
+      phz_multialias = false
     }
     s3 = {
-      name        = "com.amazonaws.${var.aws_region}.s3"
-      type        = "Interface"
-      private_dns = false
-      phz_needed  = false
+      name           = "com.amazonaws.${var.aws_region}.s3"
+      type           = "Interface"
+      private_dns    = false
+      phz_name       = "s3.${var.aws_region}.amazonaws.com"
+      phz_multialias = true
     }
   }
 }

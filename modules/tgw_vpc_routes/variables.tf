@@ -1,7 +1,7 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-# --- modules/transit_gateway/tgw_vpc_route/variables.tf ---
+# --- modules/tgw_vpc_routes/variables.tf ---
 
 variable "tgw_id" {
   type        = string

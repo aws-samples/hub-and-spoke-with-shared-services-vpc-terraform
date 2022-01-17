@@ -32,3 +32,8 @@ output "r53_endpoints_subnet_rts" {
   value       = aws_route_table.vpc_r53endpoint_subnet_rt[*].id
   description = "List of route tables of the Route 53 endpoint subnets."
 }
+
+output "vpc_type" {
+  value       = var.vpc_info.type
+  description = "Type of VPC created (Spoke or Shared Services). Information taken from the variables defined."
+}

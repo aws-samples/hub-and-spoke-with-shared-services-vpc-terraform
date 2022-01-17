@@ -8,4 +8,9 @@ output "tgw_id" {
   description = "Transit Gateway ID"
 }
 
+output "tgw_attachments" {
+  value       = { for key, value in aws_ec2_transit_gateway_vpc_attachment.tgw_attachments : key => value.id }
+  description = "List of Transit Gateway VPC Attachments"
+}
+
 

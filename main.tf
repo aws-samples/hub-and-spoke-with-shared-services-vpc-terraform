@@ -19,8 +19,20 @@ module "transit_gateway" {
   vpcs       = module.vpc
 }
 
+module "tgw_vpc_routes" {
+  for_each                    = module.vpc
+  source                      = "./modules/tgw_vpc_routes"
+  tgw_id                      = module.transit_gateway.tgw_id
+  private_subnet_rts          = each.value.private_subnet_rts
+  route53_endpoint_subnet_rts = each.value.r53_endpoints_subnet_rts
+
+  depends_on = [
+    module.transit_gateway.tgw_attachments
+  ]
+}
+
 module "compute" {
-  for_each                 = { for k, v in module.vpc : k => v if length(regexall("spoke", k)) > 0 }
+  for_each                 = { for k, v in module.vpc : k => v if v.vpc_type == "spoke" }
   source                   = "./modules/compute"
   identifier               = var.project_identifier
   vpc_name                 = each.key
@@ -31,7 +43,7 @@ module "compute" {
 }
 
 module "vpc_endpoints" {
-  for_each                 = { for k, v in module.vpc : k => v if length(regexall("shared_services", k)) > 0 }
+  for_each                 = { for k, v in module.vpc : k => v if v.vpc_type == "shared-services" }
   source                   = "./modules/vpc_endpoints"
   identifier               = var.project_identifier
   vpc_name                 = each.key
@@ -41,14 +53,14 @@ module "vpc_endpoints" {
 }
 
 module "phz" {
-  source                      = "./modules/phz"
-  vpcs                        = { for key, value in module.vpc : key => value.vpc_id }
-  endpoint_info               = module.vpc_endpoints["shared_services-vpc"].endpoints_info
-  endpoint_service_names      = { for key, value in local.endpoint_service_names : key => value if value.phz_needed }
+  source                 = "./modules/phz"
+  vpcs                   = { for key, value in module.vpc : key => value.vpc_id }
+  endpoint_info          = module.vpc_endpoints["shared_services-vpc"].endpoints_info
+  endpoint_service_names = local.endpoint_service_names
 }
 
 module "hybrid_dns" {
-  for_each                   = { for k, v in module.vpc : k => v if length(regexall("shared_services", k)) > 0 }
+  for_each                   = { for k, v in module.vpc : k => v if v.vpc_type == "shared-services" }
   source                     = "./modules/hybrid_dns"
   identifier                 = var.project_identifier
   vpc_id                     = each.value.vpc_id
