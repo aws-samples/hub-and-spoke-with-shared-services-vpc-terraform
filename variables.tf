@@ -27,7 +27,7 @@ variable "vpcs" {
       cidr_block      = "10.0.0.0/24"
       private_subnets = ["10.0.0.0/26", "10.0.0.64/26", "10.0.0.128/26"]
       tgw_subnets     = ["10.0.0.192/28", "10.0.0.208/28", "10.0.0.224/28"]
-      number_azs      = 2
+      number_azs      = 1
       instance_type   = "t2.micro"
       # VPC Flow log type / Default: ALL - Other options: ACCEPT, REJECT
       flow_log_config = {
@@ -40,7 +40,7 @@ variable "vpcs" {
       cidr_block      = "10.0.1.0/24"
       private_subnets = ["10.0.1.0/26", "10.0.1.64/26", "10.0.1.128/26"]
       tgw_subnets     = ["10.0.1.192/28", "10.0.1.208/28", "10.0.1.224/28"]
-      number_azs      = 2
+      number_azs      = 1
       instance_type   = "t2.micro"
       flow_log_config = {
         log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
