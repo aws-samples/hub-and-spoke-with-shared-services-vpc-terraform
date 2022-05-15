@@ -21,7 +21,7 @@ resource "aws_route53_resolver_endpoint" "inbound_endpoint" {
 
 # Outbound
 resource "aws_route53_resolver_endpoint" "outbound_endpoint" {
-  name               = "inbound-endpoint-${var.identifier}"
+  name               = "outbound-endpoint-${var.identifier}"
   direction          = "OUTBOUND"
   security_group_ids = [aws_security_group.r53_endpoints_sg["outbound"].id]
 

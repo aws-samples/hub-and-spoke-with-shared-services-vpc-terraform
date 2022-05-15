@@ -27,7 +27,7 @@ data "aws_ami" "amazon_linux" {
 resource "aws_security_group" "spoke_vpc_sg" {
   name        = var.ec2_security_group.name
   description = var.ec2_security_group.description
-  vpc_id      = var.vpc_info.vpc_id
+  vpc_id      = var.vpc_id
   dynamic "ingress" {
     for_each = var.ec2_security_group.ingress
     content {
@@ -55,14 +55,15 @@ resource "aws_security_group" "spoke_vpc_sg" {
   }
 }
 
-# EC2 INSTACE (1 per AZ in each Spoke VPC)
+# EC2 INSTACE (1 per AZ in each VPC)
 resource "aws_instance" "ec2_instance" {
-  count                       = length(var.vpc_info.private_subnets)
+  count = var.number_azs
+
   ami                         = data.aws_ami.amazon_linux.id
   associate_public_ip_address = false
   instance_type               = var.instance_type
   vpc_security_group_ids      = [aws_security_group.spoke_vpc_sg.id]
-  subnet_id                   = var.vpc_info.private_subnets[count.index]
+  subnet_id                   = var.vpc_subnets[count.index]
   iam_instance_profile        = var.ec2_iam_instance_profile
 
   metadata_options {
@@ -75,6 +76,6 @@ resource "aws_instance" "ec2_instance" {
   }
 
   tags = {
-    Name = "${var.vpc_name}-instance-${count.index + 1}"
+    Name = "${var.vpc_name}-instance-${count.index + 1}-${var.identifier}"
   }
 }

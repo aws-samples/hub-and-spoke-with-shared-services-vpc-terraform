@@ -4,12 +4,12 @@
 # --- root/outputs.tf ---
 
 output "instances_created" {
-  value       = module.compute
+  value       = {for k, v in module.compute: k => v.instances_created}
   description = "Instances created in each VPC"
 }
 
 output "route53_resolver_endpoints" {
-  value       = module.hybrid_dns["shared_services-vpc"]
+  value       = module.hybrid_dns["shared-services-vpc"]
   description = "Route 53 Resolver Endpoints"
 }
 
@@ -24,16 +24,16 @@ output "private_hosted_zones" {
 }
 
 output "transit_gateway" {
-  value       = module.transit_gateway.tgw_id
+  value       = aws_ec2_transit_gateway.tgw.id
   description = "Transit Gateway ID"
 }
 
 output "vpcs" {
-  value       = { for key, value in module.vpc : key => value.vpc_id }
+  value       = { for k, v in module.vpcs : k => v.vpc_attributes.id }
   description = "List of VPCs created"
 }
 
 output "vpc_endpoints" {
-  value       = { for key, value in module.vpc_endpoints["shared_services-vpc"].endpoints_info : key => value.dns_name }
+  value       = module.vpc_endpoints["shared-services-vpc"].endpoints
   description = "DNS name (regional) of the VPC endpoints created."
 }

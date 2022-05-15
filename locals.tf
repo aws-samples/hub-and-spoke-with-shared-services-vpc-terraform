@@ -127,7 +127,6 @@ locals {
       name           = "com.amazonaws.${var.aws_region}.ssm"
       type           = "Interface"
       private_dns    = false
-      phz_needed     = true
       phz_name       = "ssm.${var.aws_region}.amazonaws.com"
       phz_multialias = false
     }

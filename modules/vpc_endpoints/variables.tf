@@ -10,12 +10,17 @@ variable "identifier" {
 
 variable "vpc_name" {
   type        = string
-  description = "Name of the VPC where the EC2 instance(s) are created."
+  description = "Name of the VPC where the VPC endpoints are created."
 }
 
-variable "vpc_info" {
-  type        = any
-  description = "Information about the VPC where the EC2 instance(s) are created."
+variable "vpc_id" {
+  type        = string
+  description = "ID of the VPC to create the endpoint(s)."
+}
+
+variable "vpc_subnets" {
+  type        = list(string)
+  description = "List of the subnets to place the endpoint(s)."
 }
 
 variable "endpoints_security_group" {
@@ -23,7 +28,7 @@ variable "endpoints_security_group" {
   description = "Information about the Security Groups to create - for the VPC endpoints."
 }
 
-variable "endpoint_service_names" {
+variable "endpoints_service_names" {
   type        = any
   description = "Information about the VPC endpoints to create."
 }

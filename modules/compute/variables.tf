@@ -13,9 +13,19 @@ variable "vpc_name" {
   description = "Name of the VPC where the EC2 instance(s) are created."
 }
 
-variable "vpc_info" {
-  type        = any
-  description = "Information about the VPC where the EC2 instance(s) are created."
+variable "vpc_id" {
+  type        = string
+  description = "VPC ID to create the instances."
+}
+
+variable "vpc_subnets" {
+  type        = list(string)
+  description = "Subnets in the VPC to create the instances."
+}
+
+variable "number_azs" {
+  type        = number
+  description = "Number of AZs to place instances."
 }
 
 variable "instance_type" {

@@ -5,11 +5,11 @@
 
 # VPC ENDPOINTS
 resource "aws_vpc_endpoint" "endpoint" {
-  for_each            = var.endpoint_service_names
-  vpc_id              = var.vpc_info.vpc_id
+  for_each            = var.endpoints_service_names
+  vpc_id              = var.vpc_id
   service_name        = each.value.name
   vpc_endpoint_type   = each.value.type
-  subnet_ids          = var.vpc_info.private_subnets
+  subnet_ids          = var.vpc_subnets
   security_group_ids  = [aws_security_group.endpoints_vpc_sg.id]
   private_dns_enabled = each.value.private_dns
 }
@@ -18,7 +18,7 @@ resource "aws_vpc_endpoint" "endpoint" {
 resource "aws_security_group" "endpoints_vpc_sg" {
   name        = var.endpoints_security_group.name
   description = var.endpoints_security_group.description
-  vpc_id      = var.vpc_info.vpc_id
+  vpc_id      = var.vpc_id
 
   dynamic "ingress" {
     for_each = var.endpoints_security_group.ingress

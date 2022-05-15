@@ -4,14 +4,18 @@
 # --- root/providers.tf ---
 
 terraform {
+  required_version = "~> 1.1.2"
+  experiments      = [module_variable_optional_attrs]
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 3.71.0"
+      version = ">= 3.73.0"
+    }
+    awscc = {
+      source  = "hashicorp/awscc"
+      version = ">= 0.15.0"
     }
   }
-
-  required_version = "~> 1.1.2"
 }
 
 # AWS Provider configuration - AWS Region indicated in root/variables.tf
@@ -25,4 +29,7 @@ provider "aws" {
       Region    = var.aws_region
     }
   }
+}
+provider "awscc" {
+  region = var.aws_region
 }

@@ -9,7 +9,7 @@ resource "aws_route53_zone" "private_hosted_zone" {
   name     = each.value.phz_name
 
   dynamic "vpc" {
-    for_each = var.vpcs
+    for_each = var.vpc_ids
     content {
       vpc_id = vpc.value
     }
@@ -24,22 +24,25 @@ resource "aws_route53_record" "endpoint_record" {
   type     = "A"
 
   alias {
-    name                   = var.endpoint_info[each.key].dns_name
-    zone_id                = var.endpoint_info[each.key].hosted_zone_id
+    name                   = var.endpoint_dns[each.key].dns_name
+    zone_id                = var.endpoint_dns[each.key].hosted_zone_id
     evaluate_target_health = true
   }
 }
 
 # This specific resource is for the PHZs that need one extra alias with a "*" (for example, Amazon S3)
 resource "aws_route53_record" "endpoint_wildcard_record" {
-  for_each = { for key, value in var.endpoint_service_names : key => value if value.phz_multialias }
-  zone_id  = aws_route53_zone.private_hosted_zone[each.key].id
-  name     = "*"
-  type     = "A"
+  for_each = {
+    for k, v in var.endpoint_service_names : k => v
+    if v.phz_multialias
+  }
+  zone_id = aws_route53_zone.private_hosted_zone[each.key].id
+  name    = "*"
+  type    = "A"
 
   alias {
-    name                   = var.endpoint_info[each.key].dns_name
-    zone_id                = var.endpoint_info[each.key].hosted_zone_id
+    name                   = var.endpoint_dns[each.key].dns_name
+    zone_id                = var.endpoint_dns[each.key].hosted_zone_id
     evaluate_target_health = true
   }
 }

@@ -3,7 +3,12 @@
 
 # --- modules/vpc_endpoints/outputs.tf ---
 
-output "endpoints_info" {
-  value       = { for key, value in aws_vpc_endpoint.endpoint : key => value.dns_entry[0] }
+output "endpoints" {
+  value       = { for k, v in aws_vpc_endpoint.endpoint : k => v.id }
   description = "VPC Endpoints DNS information."
+}
+
+output "endpoint_dns" {
+  value       = { for k, v in aws_vpc_endpoint.endpoint : k => v.dns_entry[0] }
+  description = "DNS information about the VPC endpoints created."
 }

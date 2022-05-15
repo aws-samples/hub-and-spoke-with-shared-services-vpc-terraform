@@ -3,14 +3,14 @@
 
 # --- modules/phz/variables.tf ---
 
-variable "vpcs" {
-  type        = any
+variable "vpc_ids" {
+  type        = map(string)
   description = "VPC IDs to associate the PHZs created."
 }
 
-variable "endpoint_info" {
+variable "endpoint_dns" {
   type        = any
-  description = "Information about the VPC endpoints created in the Shared Services VPC."
+  description = "DNS information about the VPC endpoints created in the Shared Services VPC."
 }
 
 variable "endpoint_service_names" {
