@@ -4,8 +4,7 @@
 # --- root/providers.tf ---
 
 terraform {
-  required_version = "~> 1.1.2"
-  experiments      = [module_variable_optional_attrs]
+  required_version = ">= 1.3.0"
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -21,15 +20,8 @@ terraform {
 # AWS Provider configuration - AWS Region indicated in root/variables.tf
 provider "aws" {
   region = var.aws_region
-
-  default_tags {
-    tags = {
-      Project   = "Hub and Spoke - Shared Services VPC"
-      Terraform = "Managed"
-      Region    = var.aws_region
-    }
-  }
 }
+
 provider "awscc" {
   region = var.aws_region
 }

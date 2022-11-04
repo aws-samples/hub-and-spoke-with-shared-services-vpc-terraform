@@ -11,7 +11,7 @@ variable "aws_region" {
 }
 
 # PROJECT IDENTIFIER
-variable "project_identifier" {
+variable "identifier" {
   type        = string
   description = "Project Name, used as identifer when creating resources."
   default     = "hubspoke-shared-services"
@@ -23,12 +23,12 @@ variable "vpcs" {
   description = "VPCs to create."
   default = {
     "spoke-vpc-1" = {
-      type            = "spoke"
-      cidr_block      = "10.0.0.0/24"
-      private_subnets = ["10.0.0.0/26", "10.0.0.64/26", "10.0.0.128/26"]
-      tgw_subnets     = ["10.0.0.192/28", "10.0.0.208/28", "10.0.0.224/28"]
-      number_azs      = 1
-      instance_type   = "t2.micro"
+      type             = "spoke"
+      cidr_block       = "10.0.0.0/24"
+      workload_subnets = ["10.0.0.0/26", "10.0.0.64/26", "10.0.0.128/26"]
+      tgw_subnets      = ["10.0.0.192/28", "10.0.0.208/28", "10.0.0.224/28"]
+      number_azs       = 1
+      instance_type    = "t2.micro"
       # VPC Flow log type / Default: ALL - Other options: ACCEPT, REJECT
       flow_log_config = {
         log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
@@ -36,23 +36,24 @@ variable "vpcs" {
       }
     }
     "spoke-vpc-2" = {
-      type            = "spoke"
-      cidr_block      = "10.0.1.0/24"
-      private_subnets = ["10.0.1.0/26", "10.0.1.64/26", "10.0.1.128/26"]
-      tgw_subnets     = ["10.0.1.192/28", "10.0.1.208/28", "10.0.1.224/28"]
-      number_azs      = 1
-      instance_type   = "t2.micro"
+      type             = "spoke"
+      cidr_block       = "10.0.1.0/24"
+      workload_subnets = ["10.0.1.0/26", "10.0.1.64/26", "10.0.1.128/26"]
+      tgw_subnets      = ["10.0.1.192/28", "10.0.1.208/28", "10.0.1.224/28"]
+      number_azs       = 1
+      instance_type    = "t2.micro"
       flow_log_config = {
         log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
         retention_in_days    = 7
       }
     }
     "shared-services-vpc" = {
-      type            = "shared-services"
-      cidr_block      = "10.0.50.0/24"
-      private_subnets = ["10.0.50.0/26", "10.0.50.64/26", "10.0.50.128/26"]
-      tgw_subnets     = ["10.0.50.192/28", "10.0.50.208/28", "10.0.50.224/28"]
-      number_azs      = 2
+      type                 = "shared-services"
+      cidr_block           = "10.0.50.0/24"
+      vpc_endpoint_subnets = ["10.0.50.0/28", "10.0.50.16/28", "10.0.50.32/28"]
+      r53_endpoint_subnets = ["10.0.50.48/28", "10.0.50.64/28", "10.0.50.80/28"]
+      tgw_subnets          = ["10.0.50.96/28", "10.0.50.112/28", "10.0.50.128/28"]
+      number_azs           = 2
       flow_log_config = {
         log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
         retention_in_days    = 7

@@ -5,118 +5,83 @@
 
 locals {
   security_groups = {
-    spoke_vpc = {
-      instance = {
-        name        = "instance_sg"
-        description = "Security Group used in the instances"
-        ingress = {
-          icmp = {
-            description = "Allowing ICMP traffic"
-            from        = -1
-            to          = -1
-            protocol    = "icmp"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
-          http = {
-            description = "Allowing HTTP traffic"
-            from        = 80
-            to          = 80
-            protocol    = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+    vpc_endpoints = {
+      name        = "endpoints_sg"
+      description = "Security Group for SSM connection"
+      ingress = {
+        https = {
+          description = "Allowing HTTPS"
+          from        = 443
+          to          = 443
+          protocol    = "tcp"
+          cidr_blocks = ["0.0.0.0/0"]
         }
-        egress = {
-          any = {
-            description = "Any traffic"
-            from        = 0
-            to          = 0
-            protocol    = "-1"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+      }
+      egress = {
+        any = {
+          description = "Any traffic"
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = ["0.0.0.0/0"]
         }
       }
     }
-    centralized_vpc = {
-      endpoints = {
-        name        = "endpoints_sg"
-        description = "Security Group for SSM connection"
-        ingress = {
-          https = {
-            description = "Allowing HTTPS"
-            from        = 443
-            to          = 443
-            protocol    = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+    r53_inbound_endpoint = {
+      name        = "r53endpoint_inbound_sg"
+      description = "Security Group for R53 Resolver Inbound Endpoints"
+      ingress = {
+        tcp_access = {
+          description = "Allowing DNS traffic (TCP)"
+          from        = 53
+          to          = 53
+          protocol    = "tcp"
+          cidr_blocks = ["${var.on_premises_cidr}"]
         }
-        egress = {
-          any = {
-            description = "Any traffic"
-            from        = 0
-            to          = 0
-            protocol    = "-1"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+        udp_access = {
+          description = "Allowing DNS traffic (UDP)"
+          from        = 53
+          to          = 53
+          protocol    = "udp"
+          cidr_blocks = ["${var.on_premises_cidr}"]
+        }
+      }
+      egress = {
+        any = {
+          description = "Any traffic"
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = ["0.0.0.0/0"]
         }
       }
     }
-    r53_endoints = {
-      inbound = {
-        name        = "r53endpoint_inbound_sg"
-        description = "Security Group for R53 Resolver Inbound Endpoints"
-        ingress = {
-          tcp_access = {
-            description = "Allowing DNS traffic (TCP)"
-            from        = 53
-            to          = 53
-            protocol    = "tcp"
-            cidr_blocks = ["${var.on_premises_cidr}"]
-          }
-          udp_access = {
-            description = "Allowing DNS traffic (UDP)"
-            from        = 53
-            to          = 53
-            protocol    = "udp"
-            cidr_blocks = ["${var.on_premises_cidr}"]
-          }
+    r53_outbound_endpoint = {
+      name        = "r53endpoint_outbound_sg"
+      description = "Security Group for R53 Resolver Outbound Endpoits"
+      ingress = {
+        tcp_access = {
+          description = "Allowing DNS traffic (TCP)"
+          from        = 53
+          to          = 53
+          protocol    = "tcp"
+          cidr_blocks = ["0.0.0.0/0"]
         }
-        egress = {
-          any = {
-            description = "Any traffic"
-            from        = 0
-            to          = 0
-            protocol    = "-1"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+        udp_access = {
+          description = "Allowing DNS traffic (UDP)"
+          from        = 53
+          to          = 53
+          protocol    = "udp"
+          cidr_blocks = ["0.0.0.0/0"]
         }
       }
-      outbound = {
-        name        = "r53endpoint_outbound_sg"
-        description = "Security Group for R53 Resolver Outbound Endpoits"
-        ingress = {
-          tcp_access = {
-            description = "Allowing DNS traffic (TCP)"
-            from        = 53
-            to          = 53
-            protocol    = "tcp"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
-          udp_access = {
-            description = "Allowing DNS traffic (UDP)"
-            from        = 53
-            to          = 53
-            protocol    = "udp"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
-        }
-        egress = {
-          any = {
-            description = "Any traffic"
-            from        = 0
-            to          = 0
-            protocol    = "-1"
-            cidr_blocks = ["0.0.0.0/0"]
-          }
+      egress = {
+        any = {
+          description = "Any traffic"
+          from        = 0
+          to          = 0
+          protocol    = "-1"
+          cidr_blocks = ["0.0.0.0/0"]
         }
       }
     }

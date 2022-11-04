@@ -25,11 +25,12 @@ data "aws_ami" "amazon_linux" {
 
 # EC2 INSTANCE SECURITY GROUPS
 resource "aws_security_group" "spoke_vpc_sg" {
-  name        = var.ec2_security_group.name
-  description = var.ec2_security_group.description
+  name        = local.instance_security_group.name
+  description = local.instance_security_group.description
   vpc_id      = var.vpc_id
+
   dynamic "ingress" {
-    for_each = var.ec2_security_group.ingress
+    for_each = local.instance_security_group.ingress
     content {
       description = ingress.value.description
       from_port   = ingress.value.from
@@ -40,7 +41,7 @@ resource "aws_security_group" "spoke_vpc_sg" {
   }
 
   dynamic "egress" {
-    for_each = var.ec2_security_group.egress
+    for_each = local.instance_security_group.egress
     content {
       description = egress.value.description
       from_port   = egress.value.from

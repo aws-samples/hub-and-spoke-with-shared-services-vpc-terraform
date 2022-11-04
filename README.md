@@ -76,7 +76,7 @@ This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 
 | Name | Version |
 |------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | ~> 1.1.2 |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.73.0 |
 | <a name="requirement_awscc"></a> [awscc](#requirement\_awscc) | >= 0.15.0 |
 
@@ -84,26 +84,47 @@ This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.14.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 4.38.0 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
-| <a name="module_hybrid_dns"></a> [hybrid\_dns](#module\_hybrid\_dns) | ./modules/hybrid_dns | n/a |
-| <a name="module_iam_kms"></a> [iam\_kms](#module\_iam\_kms) | ./modules/iam_kms | n/a |
-| <a name="module_phz"></a> [phz](#module\_phz) | ./modules/phz | n/a |
-| <a name="module_tgw_route_tables"></a> [tgw\_route\_tables](#module\_tgw\_route\_tables) | ./modules/tgw_route_tables | n/a |
-| <a name="module_vpc_endpoints"></a> [vpc\_endpoints](#module\_vpc\_endpoints) | ./modules/vpc_endpoints | n/a |
-| <a name="module_vpc_route_to_tgw"></a> [vpc\_route\_to\_tgw](#module\_vpc\_route\_to\_tgw) | ./modules/vpc_route_to_tgw | n/a |
-| <a name="module_vpcs"></a> [vpcs](#module\_vpcs) | aws-ia/vpc/aws | >= 1.0.0 |
+| <a name="module_shared_services_vpc"></a> [shared\_services\_vpc](#module\_shared\_services\_vpc) | aws-ia/vpc/aws | = 3.0.1 |
+| <a name="module_spoke_vpcs"></a> [spoke\_vpcs](#module\_spoke\_vpcs) | aws-ia/vpc/aws | = 3.0.1 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
 | [aws_ec2_transit_gateway.tgw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway) | resource |
+| [aws_ec2_transit_gateway_route_table.shared_services_vpc_tgw_rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table) | resource |
+| [aws_ec2_transit_gateway_route_table.spoke_vpc_tgw_rt](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table) | resource |
+| [aws_ec2_transit_gateway_route_table_association.shared_services_vpc_tgw_rt_assoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table_association) | resource |
+| [aws_ec2_transit_gateway_route_table_association.spoke_vpc_tgw_rt_assoc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table_association) | resource |
+| [aws_ec2_transit_gateway_route_table_propagation.centralized_to_spoke_rt_propagation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table_propagation) | resource |
+| [aws_ec2_transit_gateway_route_table_propagation.spokes_to_centralized_rt_propagation](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_transit_gateway_route_table_propagation) | resource |
+| [aws_iam_instance_profile.ec2_instance_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
+| [aws_iam_policy_attachment.s3_readonly_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment) | resource |
+| [aws_iam_policy_attachment.ssm_iam_role_policy_attachment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_policy_attachment) | resource |
+| [aws_iam_role.role_ec2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.vpc_flowlogs_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy.vpc_flowlogs_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_kms_key.log_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
+| [aws_route53_record.endpoint_record](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_record.endpoint_wildcard_record](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_resolver_endpoint.inbound_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_endpoint) | resource |
+| [aws_route53_resolver_endpoint.outbound_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_endpoint) | resource |
+| [aws_route53_resolver_rule.forwarding_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_rule) | resource |
+| [aws_route53_zone.private_hosted_zone](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
+| [aws_security_group.endpoints_vpc_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_vpc_endpoint.endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpc_endpoint) | resource |
+| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_iam_policy_document.policy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.policy_kms_logs_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.policy_role_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.policy_rolepolicy_document](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 
 ## Inputs
 
@@ -111,19 +132,18 @@ This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 |------|-------------|------|---------|:--------:|
 | <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS Region to create the environment. | `string` | `"eu-west-2"` | no |
 | <a name="input_forwarding_rules"></a> [forwarding\_rules](#input\_forwarding\_rules) | Forwarding rules to on-premises DNS servers. | `map(any)` | <pre>{<br>  "example-domain": {<br>    "domain_name": "example.com",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1",<br>      "2.2.2.2"<br>    ]<br>  },<br>  "test-domain": {<br>    "domain_name": "test.es",<br>    "rule_type": "FORWARD",<br>    "target_ip": [<br>      "1.1.1.1"<br>    ]<br>  }<br>}</pre> | no |
+| <a name="input_identifier"></a> [identifier](#input\_identifier) | Project Name, used as identifer when creating resources. | `string` | `"hubspoke-shared-services"` | no |
 | <a name="input_on_premises_cidr"></a> [on\_premises\_cidr](#input\_on\_premises\_cidr) | On-premises CIDR block. | `string` | `"192.168.0.0/16"` | no |
-| <a name="input_project_identifier"></a> [project\_identifier](#input\_project\_identifier) | Project Name, used as identifer when creating resources. | `string` | `"hubspoke-shared-services"` | no |
-| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `any` | <pre>{<br>  "shared-services-vpc": {<br>    "cidr_block": "10.0.50.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "number_azs": 2,<br>    "private_subnets": [<br>      "10.0.50.0/26",<br>      "10.0.50.64/26",<br>      "10.0.50.128/26"<br>    ],<br>    "tgw_subnets": [<br>      "10.0.50.192/28",<br>      "10.0.50.208/28",<br>      "10.0.50.224/28"<br>    ],<br>    "type": "shared-services"<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "private_subnets": [<br>      "10.0.0.0/26",<br>      "10.0.0.64/26",<br>      "10.0.0.128/26"<br>    ],<br>    "tgw_subnets": [<br>      "10.0.0.192/28",<br>      "10.0.0.208/28",<br>      "10.0.0.224/28"<br>    ],<br>    "type": "spoke"<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.0.1.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "private_subnets": [<br>      "10.0.1.0/26",<br>      "10.0.1.64/26",<br>      "10.0.1.128/26"<br>    ],<br>    "tgw_subnets": [<br>      "10.0.1.192/28",<br>      "10.0.1.208/28",<br>      "10.0.1.224/28"<br>    ],<br>    "type": "spoke"<br>  }<br>}</pre> | no |
+| <a name="input_vpcs"></a> [vpcs](#input\_vpcs) | VPCs to create. | `any` | <pre>{<br>  "shared-services-vpc": {<br>    "cidr_block": "10.0.50.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "number_azs": 2,<br>    "r53_endpoint_subnets": [<br>      "10.0.50.48/28",<br>      "10.0.50.64/28",<br>      "10.0.50.80/28"<br>    ],<br>    "tgw_subnets": [<br>      "10.0.50.96/28",<br>      "10.0.50.112/28",<br>      "10.0.50.128/28"<br>    ],<br>    "type": "shared-services",<br>    "vpc_endpoint_subnets": [<br>      "10.0.50.0/28",<br>      "10.0.50.16/28",<br>      "10.0.50.32/28"<br>    ]<br>  },<br>  "spoke-vpc-1": {<br>    "cidr_block": "10.0.0.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "tgw_subnets": [<br>      "10.0.0.192/28",<br>      "10.0.0.208/28",<br>      "10.0.0.224/28"<br>    ],<br>    "type": "spoke",<br>    "workload_subnets": [<br>      "10.0.0.0/26",<br>      "10.0.0.64/26",<br>      "10.0.0.128/26"<br>    ]<br>  },<br>  "spoke-vpc-2": {<br>    "cidr_block": "10.0.1.0/24",<br>    "flow_log_config": {<br>      "log_destination_type": "cloud-watch-logs",<br>      "retention_in_days": 7<br>    },<br>    "instance_type": "t2.micro",<br>    "number_azs": 1,<br>    "tgw_subnets": [<br>      "10.0.1.192/28",<br>      "10.0.1.208/28",<br>      "10.0.1.224/28"<br>    ],<br>    "type": "spoke",<br>    "workload_subnets": [<br>      "10.0.1.0/26",<br>      "10.0.1.64/26",<br>      "10.0.1.128/26"<br>    ]<br>  }<br>}</pre> | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_instances_created"></a> [instances\_created](#output\_instances\_created) | Instances created in each VPC |
-| <a name="output_kms_key"></a> [kms\_key](#output\_kms\_key) | KMS key ARN |
-| <a name="output_private_hosted_zones"></a> [private\_hosted\_zones](#output\_private\_hosted\_zones) | Private Hosted Zones |
-| <a name="output_route53_resolver_endpoints"></a> [route53\_resolver\_endpoints](#output\_route53\_resolver\_endpoints) | Route 53 Resolver Endpoints |
-| <a name="output_transit_gateway"></a> [transit\_gateway](#output\_transit\_gateway) | Transit Gateway ID |
-| <a name="output_vpc_endpoints"></a> [vpc\_endpoints](#output\_vpc\_endpoints) | DNS name (regional) of the VPC endpoints created. |
-| <a name="output_vpcs"></a> [vpcs](#output\_vpcs) | List of VPCs created |
+| <a name="output_ec2_instances"></a> [ec2\_instances](#output\_ec2\_instances) | Instances created in each Spoke VPC. |
+| <a name="output_private_hosted_zones"></a> [private\_hosted\_zones](#output\_private\_hosted\_zones) | Private Hosted Zones. |
+| <a name="output_route53_resolver_endpoints"></a> [route53\_resolver\_endpoints](#output\_route53\_resolver\_endpoints) | Route 53 Resolver Endpoints. |
+| <a name="output_transit_gateway"></a> [transit\_gateway](#output\_transit\_gateway) | Transit Gateway resources. |
+| <a name="output_vpc_endpoints"></a> [vpc\_endpoints](#output\_vpc\_endpoints) | VPC endpoints created. |
+| <a name="output_vpcs"></a> [vpcs](#output\_vpcs) | VPCs created. |
 <!-- END_TF_DOCS -->

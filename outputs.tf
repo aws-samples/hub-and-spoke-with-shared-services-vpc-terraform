@@ -3,37 +3,44 @@
 
 # --- root/outputs.tf ---
 
-output "instances_created" {
-  value       = {for k, v in module.compute: k => v.instances_created}
-  description = "Instances created in each VPC"
-}
-
-output "route53_resolver_endpoints" {
-  value       = module.hybrid_dns["shared-services-vpc"]
-  description = "Route 53 Resolver Endpoints"
-}
-
-output "kms_key" {
-  value       = module.iam_kms.kms_arn
-  description = "KMS key ARN"
-}
-
-output "private_hosted_zones" {
-  value       = module.phz.private_hosted_zones
-  description = "Private Hosted Zones"
+output "vpcs" {
+  description = "VPCs created."
+  value = {
+    spoke           = { for k, v in module.spoke_vpcs : k => v.vpc_attributes.id }
+    shared_services = module.shared_services_vpc["shared-services-vpc"].vpc_attributes.id
+  }
 }
 
 output "transit_gateway" {
-  value       = aws_ec2_transit_gateway.tgw.id
-  description = "Transit Gateway ID"
+  description = "Transit Gateway resources."
+  value = {
+    id = aws_ec2_transit_gateway.tgw.id
+    route_tables = {
+      spoke           = aws_ec2_transit_gateway_route_table.spoke_vpc_tgw_rt.id
+      shared_services = aws_ec2_transit_gateway_route_table.shared_services_vpc_tgw_rt.id
+    }
+  }
 }
 
-output "vpcs" {
-  value       = { for k, v in module.vpcs : k => v.vpc_attributes.id }
-  description = "List of VPCs created"
+output "ec2_instances" {
+  description = "Instances created in each Spoke VPC."
+  value       = { for k, v in module.compute : k => v.instances_created }
 }
 
 output "vpc_endpoints" {
-  value       = module.vpc_endpoints["shared-services-vpc"].endpoints
-  description = "DNS name (regional) of the VPC endpoints created."
+  description = "VPC endpoints created."
+  value       = { for k, v in aws_vpc_endpoint.endpoint : k => v.id }
+}
+
+output "route53_resolver_endpoints" {
+  description = "Route 53 Resolver Endpoints."
+  value = {
+    inbound  = aws_route53_resolver_endpoint.inbound_endpoint.id
+    outbound = aws_route53_resolver_endpoint.outbound_endpoint.id
+  }
+}
+
+output "private_hosted_zones" {
+  description = "Private Hosted Zones."
+  value       = { for k, v in aws_route53_zone.private_hosted_zone : k => v.id }
 }
