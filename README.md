@@ -91,6 +91,7 @@ This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_compute"></a> [compute](#module\_compute) | ./modules/compute | n/a |
+| <a name="module_endpoint_record"></a> [endpoint\_record](#module\_endpoint\_record) | ./modules/route53_record | n/a |
 | <a name="module_shared_services_vpc"></a> [shared\_services\_vpc](#module\_shared\_services\_vpc) | aws-ia/vpc/aws | = 3.0.1 |
 | <a name="module_spoke_vpcs"></a> [spoke\_vpcs](#module\_spoke\_vpcs) | aws-ia/vpc/aws | = 3.0.1 |
 
@@ -112,8 +113,6 @@ This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) fil
 | [aws_iam_role.vpc_flowlogs_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.vpc_flowlogs_role_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_kms_key.log_key](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
-| [aws_route53_record.endpoint_record](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
-| [aws_route53_record.endpoint_wildcard_record](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_resolver_endpoint.inbound_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_endpoint) | resource |
 | [aws_route53_resolver_endpoint.outbound_endpoint](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_endpoint) | resource |
 | [aws_route53_resolver_rule.forwarding_rule](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_resolver_rule) | resource |
