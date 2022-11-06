@@ -89,32 +89,32 @@ locals {
 
   endpoint_service_names = {
     ssm = {
-      name           = "com.amazonaws.${var.aws_region}.ssm"
-      type           = "Interface"
-      private_dns    = false
-      phz_name       = "ssm.${var.aws_region}.amazonaws.com"
-      phz_multialias = false
+      name        = "com.amazonaws.${var.aws_region}.ssm"
+      type        = "Interface"
+      private_dns = false
+      phz_name    = "ssm.${var.aws_region}.amazonaws.com"
+      alias       = [""]
     }
     ssmmessages = {
-      name           = "com.amazonaws.${var.aws_region}.ssmmessages"
-      type           = "Interface"
-      private_dns    = false
-      phz_name       = "ssmmessages.${var.aws_region}.amazonaws.com"
-      phz_multialias = false
+      name        = "com.amazonaws.${var.aws_region}.ssmmessages"
+      type        = "Interface"
+      private_dns = false
+      phz_name    = "ssmmessages.${var.aws_region}.amazonaws.com"
+      alias       = [""]
     }
     ec2messages = {
-      name           = "com.amazonaws.${var.aws_region}.ec2messages"
-      type           = "Interface"
-      private_dns    = false
-      phz_name       = "ec2messages.${var.aws_region}.amazonaws.com"
-      phz_multialias = false
+      name        = "com.amazonaws.${var.aws_region}.ec2messages"
+      type        = "Interface"
+      private_dns = false
+      phz_name    = "ec2messages.${var.aws_region}.amazonaws.com"
+      alias       = [""]
     }
     s3 = {
-      name           = "com.amazonaws.${var.aws_region}.s3"
-      type           = "Interface"
-      private_dns    = false
-      phz_name       = "s3.${var.aws_region}.amazonaws.com"
-      phz_multialias = true
+      name        = "com.amazonaws.${var.aws_region}.s3"
+      type        = "Interface"
+      private_dns = false
+      phz_name    = "s3.${var.aws_region}.amazonaws.com"
+      alias       = ["", "*"]
     }
   }
 }

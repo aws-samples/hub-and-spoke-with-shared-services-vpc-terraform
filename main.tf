@@ -299,37 +299,14 @@ resource "aws_route53_zone" "private_hosted_zone" {
   }
 }
 
-# DNS Records pointing to the VPC endpoints
-resource "aws_route53_record" "endpoint_record" {
+# DNS Records pointing to the VPC endpoints (several aliases depending the VPC endpoint)
+module "endpoint_record" {
+  source   = "./modules/route53_record"
   for_each = local.endpoint_service_names
 
-  zone_id = aws_route53_zone.private_hosted_zone[each.key].id
-  name    = ""
-  type    = "A"
-
-  alias {
-    name                   = aws_vpc_endpoint.endpoint[each.key].dns_entry[0].dns_name
-    zone_id                = aws_vpc_endpoint.endpoint[each.key].dns_entry[0].hosted_zone_id
-    evaluate_target_health = true
-  }
-}
-
-# This specific resource is for the PHZs that need one extra alias with a "*" (for example, Amazon S3)
-resource "aws_route53_record" "endpoint_wildcard_record" {
-  for_each = {
-    for k, v in local.endpoint_service_names : k => v
-    if v.phz_multialias
-  }
-
-  zone_id = aws_route53_zone.private_hosted_zone[each.key].id
-  name    = "*"
-  type    = "A"
-
-  alias {
-    name                   = aws_vpc_endpoint.endpoint[each.key].dns_entry[0].dns_name
-    zone_id                = aws_vpc_endpoint.endpoint[each.key].dns_entry[0].hosted_zone_id
-    evaluate_target_health = true
-  }
+  zone_id                  = aws_route53_zone.private_hosted_zone[each.key].id
+  endpoint_dns_information = aws_vpc_endpoint.endpoint[each.key].dns_entry[0]
+  record_names             = each.value.alias
 }
 
 # ---------- VPC FLOW LOGS ----------
