@@ -3,16 +3,24 @@
 
 # --- root/main.tf ---
 
+# ---------- TRANSIT GATEWAY ----------
+resource "aws_ec2_transit_gateway" "tgw" {
+  description                     = "Transit-Gateway-${var.identifier}"
+  default_route_table_association = "disable"
+  default_route_table_propagation = "disable"
+
+  tags = {
+    Name = "transit-gateway-${var.identifier}"
+  }
+}
+
 # ---------- SPOKE VPCS ----------
 # VPC resource - https://registry.terraform.io/modules/aws-ia/vpc/aws/latest
 module "spoke_vpcs" {
-  for_each = {
-    for k, v in var.vpcs : k => v
-    if v.type == "spoke"
-  }
+  for_each = var.vpcs
 
   source  = "aws-ia/vpc/aws"
-  version = "= 3.0.1"
+  version = "= 3.1.1"
 
   name       = each.key
   cidr_block = each.value.cidr_block
@@ -92,53 +100,55 @@ resource "aws_iam_policy_attachment" "s3_readonly_policy_attachment" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
 
-# ---------- SHARED SERVICES VPCS ----------
-# VPC resource - https://registry.terraform.io/modules/aws-ia/vpc/aws/latest
-module "shared_services_vpc" {
-  for_each = {
-    for k, v in var.vpcs : k => v
-    if v.type == "shared-services"
-  }
+# ---------- HUB AND SPOKE (CENTRAL SHARED SERVICES VPC) ----------
+module "hubspoke" {
+  source  = "aws-ia/network-hubandspoke/aws"
+  version = "= 1.0.2"
 
-  source  = "aws-ia/vpc/aws"
-  version = "= 3.0.1"
-
-  name       = each.key
-  cidr_block = each.value.cidr_block
-  az_count   = each.value.number_azs
-
+  identifier         = var.identifier
   transit_gateway_id = aws_ec2_transit_gateway.tgw.id
-  transit_gateway_routes = {
-    vpc_endpoint = "0.0.0.0/0"
-    r53_endpoint = "0.0.0.0/0"
+
+  network_definition = {
+    type  = "CIDR"
+    value = "10.0.0.0/16"
   }
 
-  subnets = {
-    vpc_endpoint = { cidrs = slice(each.value.vpc_endpoint_subnets, 0, each.value.number_azs) }
-    r53_endpoint = { cidrs = slice(each.value.r53_endpoint_subnets, 0, each.value.number_azs) }
-    transit_gateway = {
-      cidrs                                           = slice(each.value.tgw_subnets, 0, each.value.number_azs)
-      transit_gateway_default_route_table_association = false
-      transit_gateway_default_route_table_propagation = false
+  central_vpcs = {
+    shared_services = {
+      name       = "shared-services-vpc"
+      cidr_block = "10.0.50.0/24"
+      az_count   = 2
+
+      subnets = {
+        endpoints       = { netmask = 28 }
+        transit_gateway = { netmask = 28 }
+      }
+
+      vpc_flow_logs = {
+        log_destination_type = "cloud-watch-logs"
+        retention_in_days    = 7
+        iam_role_arn         = aws_iam_role.vpc_flowlogs_role.arn
+        kms_key_id           = aws_kms_key.log_key.arn
+      }
     }
   }
 
-  vpc_flow_logs = {
-    log_destination_type = each.value.flow_log_config.log_destination_type
-    retention_in_days    = each.value.flow_log_config.retention_in_days
-    iam_role_arn         = aws_iam_role.vpc_flowlogs_role.arn
-    kms_key_id           = aws_kms_key.log_key.arn
+  spoke_vpcs = {
+    prod = { for k, v in module.spoke_vpcs : k => {
+      vpc_id                        = v.vpc_attributes.id
+      transit_gateway_attachment_id = v.transit_gateway_attachment_id
+    } }
   }
 }
 
-# VPC endpoints
+# ---------- VPC ENDPOINTS ----------
 resource "aws_vpc_endpoint" "endpoint" {
   for_each = local.endpoint_service_names
 
-  vpc_id              = module.shared_services_vpc["shared-services-vpc"].vpc_attributes.id
+  vpc_id              = module.hubspoke.central_vpcs["shared_services"].vpc_attributes.id
   service_name        = each.value.name
   vpc_endpoint_type   = each.value.type
-  subnet_ids          = values({ for k, v in module.shared_services_vpc["shared-services-vpc"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "vpc_endpoint" })
+  subnet_ids          = values({ for k, v in module.hubspoke.central_vpcs["shared_services"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "endpoints" })
   security_group_ids  = [aws_security_group.endpoints_vpc_sg["vpc_endpoints"].id]
   private_dns_enabled = each.value.private_dns
 }
@@ -149,7 +159,7 @@ resource "aws_security_group" "endpoints_vpc_sg" {
 
   name        = each.value.name
   description = each.value.description
-  vpc_id      = module.shared_services_vpc["shared-services-vpc"].vpc_attributes.id
+  vpc_id      = module.hubspoke.central_vpcs["shared_services"].vpc_attributes.id
 
   dynamic "ingress" {
     for_each = each.value.ingress
@@ -185,7 +195,7 @@ resource "aws_route53_resolver_endpoint" "inbound_endpoint" {
   security_group_ids = [aws_security_group.endpoints_vpc_sg["r53_inbound_endpoint"].id]
 
   dynamic "ip_address" {
-    for_each = values({ for k, v in module.shared_services_vpc["shared-services-vpc"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "r53_endpoint" })
+    for_each = values({ for k, v in module.hubspoke.central_vpcs["shared_services"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "endpoints" })
     iterator = subnet_id
     content {
       subnet_id = subnet_id.value
@@ -199,7 +209,7 @@ resource "aws_route53_resolver_endpoint" "outbound_endpoint" {
   security_group_ids = [aws_security_group.endpoints_vpc_sg["r53_outbound_endpoint"].id]
 
   dynamic "ip_address" {
-    for_each = values({ for k, v in module.shared_services_vpc["shared-services-vpc"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "r53_endpoint" })
+    for_each = values({ for k, v in module.hubspoke.central_vpcs["shared_services"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "endpoints" })
     iterator = subnet_id
     content {
       subnet_id = subnet_id.value
@@ -224,64 +234,6 @@ resource "aws_route53_resolver_rule" "forwarding_rule" {
     }
 
   }
-}
-
-# ---------- TRANSIT GATEWAY RESOURCES ----------
-# Transit Gateway
-resource "aws_ec2_transit_gateway" "tgw" {
-  description                     = "Transit-Gateway-${var.identifier}"
-  default_route_table_association = "disable"
-  default_route_table_propagation = "disable"
-
-  tags = {
-    Name = "transit-gateway-${var.identifier}"
-  }
-}
-
-# Spoke VPC Route Table and associations
-resource "aws_ec2_transit_gateway_route_table" "spoke_vpc_tgw_rt" {
-  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
-  tags = {
-    Name = "spoke-vpc-rt-${var.identifier}"
-  }
-}
-
-resource "aws_ec2_transit_gateway_route_table_association" "spoke_vpc_tgw_rt_assoc" {
-  for_each = module.spoke_vpcs
-
-  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spoke_vpc_tgw_rt.id
-}
-
-# Central Shared Services Route Table and associations
-resource "aws_ec2_transit_gateway_route_table" "shared_services_vpc_tgw_rt" {
-  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
-  tags = {
-    Name = "shared-services-vpc-rt-${var.identifier}"
-  }
-}
-
-resource "aws_ec2_transit_gateway_route_table_association" "shared_services_vpc_tgw_rt_assoc" {
-  for_each = module.shared_services_vpc
-
-  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.shared_services_vpc_tgw_rt.id
-}
-
-# All the Spoke VPC attachments propagate to the Centralized Endpoints TGW Route Table
-resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_centralized_rt_propagation" {
-  for_each = module.spoke_vpcs
-
-  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.shared_services_vpc_tgw_rt.id
-}
-
-# Centralized Endpoints VPC attachment propagates to the Spoke VPC TGW Route Table
-resource "aws_ec2_transit_gateway_route_table_propagation" "centralized_to_spoke_rt_propagation" {
-  for_each = module.shared_services_vpc
-
-  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spoke_vpc_tgw_rt.id
 }
 
 # ---------- PRIVATE HOSTED ZONES ----------

@@ -47,18 +47,6 @@ variable "vpcs" {
         retention_in_days    = 7
       }
     }
-    "shared-services-vpc" = {
-      type                 = "shared-services"
-      cidr_block           = "10.0.50.0/24"
-      vpc_endpoint_subnets = ["10.0.50.0/28", "10.0.50.16/28", "10.0.50.32/28"]
-      r53_endpoint_subnets = ["10.0.50.48/28", "10.0.50.64/28", "10.0.50.80/28"]
-      tgw_subnets          = ["10.0.50.96/28", "10.0.50.112/28", "10.0.50.128/28"]
-      number_azs           = 2
-      flow_log_config = {
-        log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
-        retention_in_days    = 7
-      }
-    }
   }
 }
 

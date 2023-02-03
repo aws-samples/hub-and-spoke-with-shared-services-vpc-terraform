@@ -7,7 +7,7 @@ output "vpcs" {
   description = "VPCs created."
   value = {
     spoke           = { for k, v in module.spoke_vpcs : k => v.vpc_attributes.id }
-    shared_services = module.shared_services_vpc["shared-services-vpc"].vpc_attributes.id
+    shared_services = module.hubspoke.central_vpcs["shared_services"].vpc_attributes.id
   }
 }
 
@@ -16,8 +16,8 @@ output "transit_gateway" {
   value = {
     id = aws_ec2_transit_gateway.tgw.id
     route_tables = {
-      spoke           = aws_ec2_transit_gateway_route_table.spoke_vpc_tgw_rt.id
-      shared_services = aws_ec2_transit_gateway_route_table.shared_services_vpc_tgw_rt.id
+      spoke           = { for k, v in module.hubspoke.transit_gateway_route_tables.spoke_vpcs : k => v.id }
+      shared_services = module.hubspoke.transit_gateway_route_tables.central_vpcs.shared_services.id
     }
   }
 }
