@@ -3,26 +3,6 @@
 
 # --- modules/compute/main.tf ---
 
-# LINUX 2 AMI
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name = "name"
-    values = [
-      "amzn-ami-hvm-*-x86_64-gp2",
-    ]
-  }
-
-  filter {
-    name = "owner-alias"
-    values = [
-      "amazon",
-    ]
-  }
-}
-
 # EC2 INSTANCE SECURITY GROUPS
 resource "aws_security_group" "spoke_vpc_sg" {
   name        = local.instance_security_group.name
@@ -60,7 +40,7 @@ resource "aws_security_group" "spoke_vpc_sg" {
 resource "aws_instance" "ec2_instance" {
   count = var.number_azs
 
-  ami                         = data.aws_ami.amazon_linux.id
+  ami                         = var.ami_id
   associate_public_ip_address = false
   instance_type               = var.instance_type
   vpc_security_group_ids      = [aws_security_group.spoke_vpc_sg.id]

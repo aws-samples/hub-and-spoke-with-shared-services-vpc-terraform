@@ -48,7 +48,27 @@ module "spoke_vpcs" {
   }
 }
 
-# EC2 INSTANCES (one in each Spoke VPC)
+# LINUX 2 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name = "name"
+    values = [
+      "amzn-ami-hvm-*-x86_64-gp2",
+    ]
+  }
+
+  filter {
+    name = "owner-alias"
+    values = [
+      "amazon",
+    ]
+  }
+}
+
+# EC2 INSTANCES and SECURITY GROUP (in each Spoke VPC)
 module "compute" {
   for_each = module.spoke_vpcs
   source   = "./modules/compute"
@@ -58,6 +78,7 @@ module "compute" {
   vpc_id                   = each.value.vpc_attributes.id
   vpc_subnets              = values({ for k, v in each.value.private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "workload" })
   number_azs               = var.vpcs[each.key].number_azs
+  ami_id                   = data.aws_ami.amazon_linux.id
   instance_type            = var.vpcs[each.key].instance_type
   ec2_iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.id
 }
@@ -69,6 +90,12 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
   role = aws_iam_role.role_ec2.id
 }
 # IAM role
+resource "aws_iam_role" "role_ec2" {
+  name               = "ec2_ssm_role_${var.identifier}"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.policy_document.json
+}
+
 data "aws_iam_policy_document" "policy_document" {
   statement {
     sid     = "1"
@@ -80,11 +107,6 @@ data "aws_iam_policy_document" "policy_document" {
     }
 
   }
-}
-resource "aws_iam_role" "role_ec2" {
-  name               = "ec2_ssm_role_${var.identifier}"
-  path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.policy_document.json
 }
 
 # Policies Attachment to Role
@@ -103,7 +125,7 @@ resource "aws_iam_policy_attachment" "s3_readonly_policy_attachment" {
 # ---------- HUB AND SPOKE (CENTRAL SHARED SERVICES VPC) ----------
 module "hubspoke" {
   source  = "aws-ia/network-hubandspoke/aws"
-  version = "= 1.0.2"
+  version = "= 2.0.0"
 
   identifier         = var.identifier
   transit_gateway_id = aws_ec2_transit_gateway.tgw.id
@@ -123,18 +145,12 @@ module "hubspoke" {
         endpoints       = { netmask = 28 }
         transit_gateway = { netmask = 28 }
       }
-
-      vpc_flow_logs = {
-        log_destination_type = "cloud-watch-logs"
-        retention_in_days    = 7
-        iam_role_arn         = aws_iam_role.vpc_flowlogs_role.arn
-        kms_key_id           = aws_kms_key.log_key.arn
-      }
     }
   }
 
   spoke_vpcs = {
-    prod = { for k, v in module.spoke_vpcs : k => {
+    number_vpcs = length(var.vpcs)
+    vpc_information = { for k, v in module.spoke_vpcs : k => {
       vpc_id                        = v.vpc_attributes.id
       transit_gateway_attachment_id = v.transit_gateway_attachment_id
     } }
