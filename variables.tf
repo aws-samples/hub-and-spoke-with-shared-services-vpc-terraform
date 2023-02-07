@@ -23,11 +23,10 @@ variable "vpcs" {
   description = "VPCs to create."
   default = {
     "spoke-vpc-1" = {
-      type             = "spoke"
       cidr_block       = "10.0.0.0/24"
       workload_subnets = ["10.0.0.0/26", "10.0.0.64/26", "10.0.0.128/26"]
       tgw_subnets      = ["10.0.0.192/28", "10.0.0.208/28", "10.0.0.224/28"]
-      number_azs       = 1
+      number_azs       = 2
       instance_type    = "t2.micro"
       # VPC Flow log type / Default: ALL - Other options: ACCEPT, REJECT
       flow_log_config = {
@@ -36,17 +35,28 @@ variable "vpcs" {
       }
     }
     "spoke-vpc-2" = {
-      type             = "spoke"
       cidr_block       = "10.0.1.0/24"
       workload_subnets = ["10.0.1.0/26", "10.0.1.64/26", "10.0.1.128/26"]
       tgw_subnets      = ["10.0.1.192/28", "10.0.1.208/28", "10.0.1.224/28"]
-      number_azs       = 1
+      number_azs       = 2
       instance_type    = "t2.micro"
       flow_log_config = {
         log_destination_type = "cloud-watch-logs" # Options: "cloud-watch-logs", "s3", "none"
         retention_in_days    = 7
       }
     }
+  }
+}
+
+variable "shared_services_vpc" {
+  type        = any
+  description = "Shared Services VPC."
+
+  default = {
+    cidr_block               = "10.129.0.0/24"
+    endpoints_subnet_netmask = 28
+    tgw_subnet_netmask       = 28
+    number_azs               = 2
   }
 }
 

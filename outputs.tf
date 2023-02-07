@@ -14,9 +14,9 @@ output "vpcs" {
 output "transit_gateway" {
   description = "Transit Gateway resources."
   value = {
-    id = aws_ec2_transit_gateway.tgw.id
+    id = module.hubspoke.transit_gateway.id
     route_tables = {
-      spoke           = { for k, v in module.hubspoke.transit_gateway_route_tables.spoke_vpcs : k => v.id }
+      spoke           = module.hubspoke.transit_gateway_route_tables.spoke_vpcs.spokes.id
       shared_services = module.hubspoke.transit_gateway_route_tables.central_vpcs.shared_services.id
     }
   }

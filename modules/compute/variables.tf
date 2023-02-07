@@ -42,3 +42,8 @@ variable "ec2_iam_instance_profile" {
   type        = string
   description = "EC2 instance profile to attach to the EC2 instance(s)"
 }
+
+variable "ec2_security_group" {
+  type        = string
+  description = "Security Group ID."
+}

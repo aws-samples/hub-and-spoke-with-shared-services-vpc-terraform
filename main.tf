@@ -3,17 +3,6 @@
 
 # --- root/main.tf ---
 
-# ---------- TRANSIT GATEWAY ----------
-resource "aws_ec2_transit_gateway" "tgw" {
-  description                     = "Transit-Gateway-${var.identifier}"
-  default_route_table_association = "disable"
-  default_route_table_propagation = "disable"
-
-  tags = {
-    Name = "transit-gateway-${var.identifier}"
-  }
-}
-
 # ---------- SPOKE VPCS ----------
 # VPC resource - https://registry.terraform.io/modules/aws-ia/vpc/aws/latest
 module "spoke_vpcs" {
@@ -26,7 +15,7 @@ module "spoke_vpcs" {
   cidr_block = each.value.cidr_block
   az_count   = each.value.number_azs
 
-  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
+  transit_gateway_id = module.hubspoke.transit_gateway.id
   transit_gateway_routes = {
     workload = "0.0.0.0/0"
   }
@@ -48,7 +37,8 @@ module "spoke_vpcs" {
   }
 }
 
-# LINUX 2 AMI
+# ---------- EC2 INSTANCES & SECURITY GROUP (in each Spoke VPC) ----------
+# Data resource to determine the latest Amazon Linux2 AMI
 data "aws_ami" "amazon_linux" {
   most_recent = true
   owners      = ["amazon"]
@@ -68,7 +58,42 @@ data "aws_ami" "amazon_linux" {
   }
 }
 
-# EC2 INSTANCES and SECURITY GROUP (in each Spoke VPC)
+# Security Group - EC2 instance
+resource "aws_security_group" "spoke_vpc_sg" {
+  for_each = module.spoke_vpcs
+
+  name        = local.security_groups.instance.name
+  description = local.security_groups.instance.description
+  vpc_id      = each.value.vpc_attributes.id
+
+  dynamic "ingress" {
+    for_each = local.security_groups.instance.ingress
+    content {
+      description = ingress.value.description
+      from_port   = ingress.value.from
+      to_port     = ingress.value.to
+      protocol    = ingress.value.protocol
+      cidr_blocks = ingress.value.cidr_blocks
+    }
+  }
+
+  dynamic "egress" {
+    for_each = local.security_groups.instance.egress
+    content {
+      description = egress.value.description
+      from_port   = egress.value.from
+      to_port     = egress.value.to
+      protocol    = egress.value.protocol
+      cidr_blocks = egress.value.cidr_blocks
+    }
+  }
+
+  tags = {
+    Name = "${each.key}-instance-security-group-${var.identifier}"
+  }
+}
+
+# EC2 Instances (one in each AZ)
 module "compute" {
   for_each = module.spoke_vpcs
   source   = "./modules/compute"
@@ -78,72 +103,38 @@ module "compute" {
   vpc_id                   = each.value.vpc_attributes.id
   vpc_subnets              = values({ for k, v in each.value.private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "workload" })
   number_azs               = var.vpcs[each.key].number_azs
-  ami_id                   = data.aws_ami.amazon_linux.id
   instance_type            = var.vpcs[each.key].instance_type
+  ami_id                   = data.aws_ami.amazon_linux.id
   ec2_iam_instance_profile = aws_iam_instance_profile.ec2_instance_profile.id
-}
-
-# EC2 IAM ROLE - SSM and S3 access
-# IAM instance profile
-resource "aws_iam_instance_profile" "ec2_instance_profile" {
-  name = "ec2_instance_profile_${var.identifier}"
-  role = aws_iam_role.role_ec2.id
-}
-# IAM role
-resource "aws_iam_role" "role_ec2" {
-  name               = "ec2_ssm_role_${var.identifier}"
-  path               = "/"
-  assume_role_policy = data.aws_iam_policy_document.policy_document.json
-}
-
-data "aws_iam_policy_document" "policy_document" {
-  statement {
-    sid     = "1"
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-
-  }
-}
-
-# Policies Attachment to Role
-resource "aws_iam_policy_attachment" "ssm_iam_role_policy_attachment" {
-  name       = "ssm_iam_role_policy_attachment_${var.identifier}"
-  roles      = [aws_iam_role.role_ec2.id]
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
-}
-
-resource "aws_iam_policy_attachment" "s3_readonly_policy_attachment" {
-  name       = "s3_readonly_policy_attachment_${var.identifier}"
-  roles      = [aws_iam_role.role_ec2.id]
-  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
+  ec2_security_group       = aws_security_group.spoke_vpc_sg[each.key].id
 }
 
 # ---------- HUB AND SPOKE (CENTRAL SHARED SERVICES VPC) ----------
+# Module - https://registry.terraform.io/modules/aws-ia/network-hubandspoke/aws/latest
 module "hubspoke" {
-  source  = "aws-ia/network-hubandspoke/aws"
-  version = "= 2.0.0"
+  source     = "aws-ia/network-hubandspoke/aws"
+  version    = "= 2.0.0"
+  identifier = var.identifier
 
-  identifier         = var.identifier
-  transit_gateway_id = aws_ec2_transit_gateway.tgw.id
+  transit_gateway_attributes = {
+    name        = "transit-gateway-${var.identifier}"
+    description = "Transit-Gateway-${var.identifier}"
+  }
 
   network_definition = {
-    type  = "CIDR"
-    value = "10.0.0.0/16"
+    type  = "PREFIX_LIST"
+    value = aws_ec2_managed_prefix_list.prefix_list.id
   }
 
   central_vpcs = {
     shared_services = {
       name       = "shared-services-vpc"
-      cidr_block = "10.0.50.0/24"
-      az_count   = 2
+      cidr_block = var.shared_services_vpc.cidr_block
+      az_count   = var.shared_services_vpc.number_azs
 
       subnets = {
-        endpoints       = { netmask = 28 }
-        transit_gateway = { netmask = 28 }
+        endpoints       = { netmask = var.shared_services_vpc.endpoints_subnet_netmask }
+        transit_gateway = { netmask = var.shared_services_vpc.tgw_subnet_netmask }
       }
     }
   }
@@ -155,6 +146,21 @@ module "hubspoke" {
       transit_gateway_attachment_id = v.transit_gateway_attachment_id
     } }
   }
+}
+
+# ---------- MANAGED PREFIX LIST (Spoke VPC CIDR blocks) ----------
+resource "aws_ec2_managed_prefix_list" "prefix_list" {
+  name           = "prefix_list-${var.identifier}"
+  address_family = "IPv4"
+  max_entries    = length(var.vpcs)
+}
+
+resource "aws_ec2_managed_prefix_list_entry" "entry" {
+  for_each = var.vpcs
+
+  cidr           = each.value.cidr_block
+  description    = each.key
+  prefix_list_id = aws_ec2_managed_prefix_list.prefix_list.id
 }
 
 # ---------- VPC ENDPOINTS ----------
@@ -204,6 +210,7 @@ resource "aws_security_group" "endpoints_vpc_sg" {
   }
 }
 
+# ---------- ROUTE 53 RESOLVER ENDPOINTS ----------
 # Route 53 Resolver Endpoints
 resource "aws_route53_resolver_endpoint" "inbound_endpoint" {
   name               = "inbound-endpoint-${var.identifier}"
@@ -367,4 +374,44 @@ data "aws_iam_policy_document" "policy_kms_logs_document" {
       values   = ["arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:*"]
     }
   }
+}
+
+# ---------- EC2 IAM ROLE - SSM and S3 access ----------
+# IAM instance profile
+resource "aws_iam_instance_profile" "ec2_instance_profile" {
+  name = "ec2_instance_profile_${var.identifier}"
+  role = aws_iam_role.role_ec2.id
+}
+
+# IAM role
+resource "aws_iam_role" "role_ec2" {
+  name               = "ec2_ssm_role_${var.identifier}"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.policy_document.json
+}
+
+data "aws_iam_policy_document" "policy_document" {
+  statement {
+    sid     = "1"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+
+  }
+}
+
+# Policies Attachment to Role
+resource "aws_iam_policy_attachment" "ssm_iam_role_policy_attachment" {
+  name       = "ssm_iam_role_policy_attachment_${var.identifier}"
+  roles      = [aws_iam_role.role_ec2.id]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_policy_attachment" "s3_readonly_policy_attachment" {
+  name       = "s3_readonly_policy_attachment_${var.identifier}"
+  roles      = [aws_iam_role.role_ec2.id]
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
 }
