@@ -34,7 +34,7 @@ The resources deployed and the architectural pattern they follow is purely for d
 
 - To centralize the SSM access for the instances created in the Spoke VPCs, 3 VPC endpoints are created with "Private DNS" option disabled: ssm, ssmmessages, and ec2messages. 3 Private Hosted Zones are created and associated with all the VPCs created (Spoke VPCs and Shared Services VPC) to allow DNS resolution.
 - The fourth VPC endpoint created is to access Amazon S3. As indicated before, the EC2 instance roles only have *read* permission.
-- Amazon S3 interface endpoints **do not support** the private DNS feature. However, thanks to the use of Private Hosted Zones, you can access S3 without having to use the VPC endpoint DNS name all the time. Two resource records are created within the S3 PHZ: one for the apex of the domain, and the second as a wildcard to allow all records within this domain to be resolved to the VPC endpoint. One example you can use to test the access to S3 is the following one: `aws s3 --region {aws_region} ls s3://`
+- For the S3 connectivity, two resource records are created within the S3 PHZ: one for the apex of the domain, and the second as a wildcard to allow all records within this domain to be resolved to the VPC endpoint. One example you can use to test the access to S3 is the following one: `aws s3 --region {aws_region} ls s3://`
 
 ### Hybrid DNS
 
